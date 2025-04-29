@@ -1,0 +1,6 @@
+obj/
+res/
+compile.bat
+*.gb
+src/data.h
+src/data.c

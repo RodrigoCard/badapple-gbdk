@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.gbsproj": "json",
+        "data.h": "c"
+    }
+}
