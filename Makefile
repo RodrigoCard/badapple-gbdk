@@ -6,7 +6,7 @@
 # If you move this project you can change the directory 
 # to match your GBDK root directory (ex: GBDK_HOME = "C:/GBDK/"
 ifndef GBDK_HOME
-GBDK_HOME = c:/sdk/gbdk/
+GBDK_HOME = c:/sdk/gbdk-dev/
 endif
 
 LCC = $(GBDK_HOME)bin/lcc 
@@ -38,6 +38,8 @@ compile.bat: Makefile
 	@echo "REM Automatically generated from Makefile" > compile.bat
 	@make -sn | sed y/\\//\\\\/ | sed s/mkdir\ -p\/mkdir\/ | grep -v make >> compile.bat
 
+.PRECIOUS: $(OBJS) $(OBJDIR)/%.c obj/linkfile.lk
+
 # Compile .c files in "src/" to .o object files
 $(OBJDIR)/%.o:	$(SRCDIR)/%.c
 	$(LCC) $(LCCFLAGS) -c -o $@ $<
@@ -59,10 +61,18 @@ $(OBJDIR)/%.s:	$(SRCDIR)/%.c
 $(OBJDIR)/%.o:	$(OBJDIR)/%.c
 	$(LCC) $(LCCFLAGS) $(CFLAGS) -c -o $@ $<
 
+$(OBJDIR)/linkfile.lk:	$(OBJS)
+	rm -f $@
+	@for obj in $(OBJS); do \
+		echo $$obj >>$@; \
+	done
 
+# Link the compiled object files (via linkerfile) into a .gb ROM file
+$(BINS):	$(OBJDIR)/linkfile.lk
+		$(LCC) $(LCCFLAGS) -o $(BINS) -Wl-f$<
 # Link the compiled object files into a .gb ROM file
-$(BINS):	$(OBJS)
-	$(LCC) $(LCCFLAGS) -o $(BINS) $(OBJS)
+# $(BINS):	$(OBJS)
+# 	$(LCC) $(LCCFLAGS) -o $(BINS) $(OBJS)
 
 prepare:
 	mkdir -p $(OBJDIR) $(RESDIR)

@@ -1,5 +1,7 @@
 obj/
 res/
+res*/
+build/
 compile.bat
 *.gb
 src/data.h

@@ -12,6 +12,8 @@
 #define POSITION_X ((DEVICE_SCREEN_WIDTH - MAP_WIDTH) >> 1)
 #define POSITION_Y ((DEVICE_SCREEN_HEIGHT - MAP_HEIGHT) >> 1)
 
+// #define BUFFER_DOUBLE
+#define HBLANK_DESTINATION   0 // 0 = 8000; 1 = 9000
 
 uint8_t joy = 0, old_joy;
 inline void PROCESS_INPUT(void) {
@@ -28,33 +30,45 @@ uint8_t animation_speed = 4, animation_counter = 0; // animation speed and count
 
 const frame_desc_t * current_frame = frames;        // pointer to the current animation frame
 
+#ifdef BUFFER_DOUBLE
 void LCD_ISR(void) {
     static bool odd_even_frame = false;
     uint8_t _save = CURRENT_BANK;
     SWITCH_ROM(current_frame->bank);
 
-    // if ((step_animation) || (animation))  {
-
-        if (odd_even_frame = !odd_even_frame) {
-            LCDC_REG &= ~LCDCF_BG8000;
-            hblank_copy_destination = _VRAM8000;
-            hblank_copy_vram(current_frame->tiles, MAP_WIDTH * MAP_HEIGHT);
-        } else {
-            LCDC_REG |= LCDCF_BG8000;
-            hblank_copy_destination = _VRAM9000;
-            hblank_copy_vram(current_frame->tiles, MAP_WIDTH * MAP_HEIGHT);
-        }
-    // }
+    if (odd_even_frame = !odd_even_frame) {
+        LCDC_REG &= ~LCDCF_BG8000;
+        hblank_copy_destination = _VRAM8000;
+        hblank_copy_vram(current_frame->tiles, MAP_WIDTH * MAP_HEIGHT);
+    } else {
+        LCDC_REG |= LCDCF_BG8000;
+        hblank_copy_destination = _VRAM9000;
+        hblank_copy_vram(current_frame->tiles, MAP_WIDTH * MAP_HEIGHT);
+    }
     SWITCH_ROM(_save);
 }
+#else // single buffer
+void LCD_ISR(void) {
+    // static bool odd_even_frame = false;
+    uint8_t _save = CURRENT_BANK;
+    SWITCH_ROM(current_frame->bank);
+    hblank_copy_vram(current_frame->tiles, MAP_WIDTH * MAP_HEIGHT);
+    SWITCH_ROM(_save);
+}
+#endif
 
 void main(void) {
     DISPLAY_OFF;
 
     CRITICAL {
         LYC_REG = 0, STAT_REG |= STATF_LYC;
-        LCDC_REG &= ~LCDCF_BG8000;
-        hblank_copy_destination = _VRAM9000;
+        #if HBLANK_DESTINATION == 0
+            LCDC_REG |= LCDCF_BG8000;
+            hblank_copy_destination = _VRAM8000;
+        #else
+            LCDC_REG &= ~LCDCF_BG8000;
+            hblank_copy_destination = _VRAM9000;
+        #endif
         add_LCD(LCD_ISR);
     }
     set_interrupts(IE_REG | LCD_IFLAG);

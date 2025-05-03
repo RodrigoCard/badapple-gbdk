@@ -4,7 +4,7 @@ import os
 # Configurações
 WIDTH = 112
 HEIGHT = 72
-FRAMES = 2000
+FRAMES = 4383
 FPS = 15
 
 MAP_WIDTH = 14
