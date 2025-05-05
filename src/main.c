@@ -117,11 +117,14 @@ void main(void) {
         if(vbl_count == 0)
             vsync();
         vbl_count = 0;
-        uint8_t _save = CURRENT_BANK;
-        SWITCH_ROM(current_frame->bank);
-        // gb_decompress(current_frame->tiles, buffer);
-        gb_decompress_bkg_data(TILE_OFFSET, current_frame->tiles);
-        SWITCH_ROM(_save); 
+        static bool odd_even_frame = false;
+        if (odd_even_frame = !odd_even_frame) {
+            uint8_t _save = CURRENT_BANK;
+            SWITCH_ROM(current_frame->bank);
+            // gb_decompress(current_frame->tiles, buffer);
+            gb_decompress_bkg_data(TILE_OFFSET, current_frame->tiles);
+            SWITCH_ROM(_save); 
+        }
         PROCESS_INPUT();
         // stepping through animation frames with LEFT/RIGHT
         if (joy & J_LEFT) {

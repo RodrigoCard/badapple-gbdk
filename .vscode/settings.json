@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "*.gbsproj": "json",
-        "data.h": "c"
+        "include/**/*.h": "c",
+        "${GBDK_HOME}/include/**": "c",
+        "f*.h": "c"
     }
 }
