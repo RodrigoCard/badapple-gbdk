@@ -10,7 +10,7 @@ import hashlib
 WIDTH = 112
 HEIGHT = 72
 FRAMES = 4383
-FPS = 20
+FPS = 60
 
 MAP_WIDTH = 14
 MAP_HEIGHT = 9

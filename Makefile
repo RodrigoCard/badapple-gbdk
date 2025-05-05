@@ -39,7 +39,7 @@ compile.bat: Makefile
 	@echo "REM Automatically generated from Makefile" > compile.bat
 	@make -sn | sed y/\\//\\\\/ | sed s/mkdir\ -p\/mkdir\/ | grep -v make >> compile.bat
 
-.PRECIOUS: $(OBJS) $(OBJDIR)/%.c obj/linkfile.lk
+.PRECIOUS: $(OBJS) $(OBJDIR)/%.c $(OBJDIR)/linkfile.lk
 
 # Compile .c files in "src/" to .o object files
 $(OBJDIR)/%.o:	$(SRCDIR)/%.c
