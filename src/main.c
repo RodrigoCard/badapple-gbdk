@@ -79,7 +79,7 @@ void main(void) {
     // set up palettes
     BGP_REG = DMG_PALETTE(DMG_DARK_GRAY, DMG_WHITE, DMG_LITE_GRAY, DMG_BLACK);
     cpu_fast();
-    const palette_color_t bg_palette[4] = { RGBHTML(0x00303b), RGBHTML(0xa40000), RGBHTML(0xff8b40), RGBHTML(0xf1f2da) };
+    const palette_color_t bg_palette[4] = { RGBHTML(0xf1f2da), RGBHTML(0xa40000), RGBHTML(0xff8b40), RGBHTML(0x00303b) };
     set_bkg_palette(0, 1, bg_palette);
  
     set_bkg_data(0, 1u, blacktile_tiles); // The first 0x80u here is the tile ID
