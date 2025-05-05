@@ -4,5 +4,7 @@ res*/
 build/
 compile.bat
 *.gb
+*.7z
 src/data.h
 src/data.c
+scratchpad.txt
