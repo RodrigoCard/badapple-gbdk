@@ -11,6 +11,7 @@ endif
 
 LCC = $(GBDK_HOME)bin/lcc 
 PNG2ASSET = $(GBDK_HOME)bin/png2asset
+GBCOMPRESS = $(GBDK_HOME)bin/gbcompress
 
 LCCFLAGS += -Wm-yt0x19 -Wm-yc -autobank -I$(OBJDIR)
 
@@ -46,7 +47,13 @@ $(OBJDIR)/%.o:	$(SRCDIR)/%.c
 
 # Compile .c files in "res/" to .o object files
 $(OBJDIR)/%.c:	$(RESDIR)/%.png
-	$(PNG2ASSET) $< -c $@ -map -noflip -tiles_only -no_palettes -keep_duplicate_tiles -b 255
+# $(PNG2ASSET) $< -c $@ -map -noflip -tiles_only -no_palettes -keep_duplicate_tiles -b 255
+
+# $(PNG2ASSET) $< -c $(OBJDIR)/$*_nocomp.c -map -noflip -tiles_only -no_palettes -keep_duplicate_tiles -bin
+# $(GBCOMPRESS) -v --cout --bank=255 --varname=$*_tiles $(OBJDIR)/$*_nocomp_tiles.bin $@
+
+	$(PNG2ASSET) $< -c $@ -map -noflip -tiles_only -no_palettes -keep_duplicate_tiles -bin
+	$(GBCOMPRESS) -v --cout --bank=255 --varname=$*_tiles $(OBJDIR)/$*_tiles.bin $@
 
 # Compile .s assembly files in "src/" to .o object files
 $(OBJDIR)/%.o:	$(SRCDIR)/%.s
@@ -62,7 +69,8 @@ $(OBJDIR)/%.o:	$(OBJDIR)/%.c
 	$(LCC) $(LCCFLAGS) $(CFLAGS) -c -o $@ $<
 
 $(OBJDIR)/linkfile.lk:	$(OBJS)
-	rm -f $@
+	@echo "creating linkfile.lk"
+	@rm -f $@
 	@for obj in $(OBJS); do \
 		echo $$obj >>$@; \
 	done
@@ -75,7 +83,7 @@ $(BINS):	$(OBJDIR)/linkfile.lk
 # 	$(LCC) $(LCCFLAGS) -o $(BINS) $(OBJS)
 
 prepare:
-	mkdir -p $(OBJDIR) $(RESDIR)
+	@mkdir -p $(OBJDIR) $(RESDIR)
 
 clean:
 #	rm -f  *.gb *.ihx *.cdb *.adb *.noi *.map

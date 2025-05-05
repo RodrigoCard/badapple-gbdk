@@ -1,6 +1,7 @@
 // Adapted from gbdk hblank copy example by Rodrigo Rocha
 #include <gbdk/platform.h>
 #include <gb/hblankcpy.h>
+#include <gbdk/gbdecompress.h>
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -14,7 +15,7 @@
 #define POSITION_Y ((DEVICE_SCREEN_HEIGHT - MAP_HEIGHT) >> 1)
 
 // #define BUFFER_DOUBLE // uncomment for double buffering
-#define HBLANK_DESTINATION  0 // 0 = 8000; 1 = 9000
+#define HBLANK_DESTINATION  1 // 0 = 8000; 1 = 9000
 #define TILE_OFFSET         1 // dont touch the first tile! remove to start at zero
 #define TILE_OFFSET_SIZE    16 // tile bytes
 
@@ -26,12 +27,15 @@ inline uint8_t KEY_PRESSED(uint8_t key) {
     return ((joy & ~old_joy) & key);
 }
 
+uint8_t vbl_count=0;
 bool animation = true;                              // animation enabled
 bool step_animation = false;
 bool animation_direction = true;                    // animate forward or back
-uint8_t animation_speed = 4, animation_counter = 0; // animation speed and counter
+uint8_t animation_speed = 0, animation_counter = 0; // animation speed and counter
 
 const frame_desc_t * current_frame = frames;        // pointer to the current animation frame
+
+uint8_t buffer[4096];
 
 #ifdef BUFFER_DOUBLE
 void LCD_ISR(void) {
@@ -52,19 +56,30 @@ void LCD_ISR(void) {
 }
 #else // single buffer
 void LCD_ISR(void) {
-    // static bool odd_even_frame = false;
-    uint8_t _save = CURRENT_BANK;
-    SWITCH_ROM(current_frame->bank);
-    hblank_copy_vram(current_frame->tiles, MAP_WIDTH * MAP_HEIGHT);
-    SWITCH_ROM(_save);
+    hblank_copy_vram(buffer, MAP_WIDTH * MAP_HEIGHT);
+    // uint8_t _save = CURRENT_BANK;
+    // SWITCH_ROM(current_frame->bank);
+    // gb_decompress(current_frame->tiles, buffer)
+    // hblank_copy_vram(current_frame->tiles, MAP_WIDTH * MAP_HEIGHT);
+    // SWITCH_ROM(_save);
+    // gb_decompress_bkg_data(TILE_OFFSET, buffer);
+    // uint8_t _save = CURRENT_BANK;
+    // SWITCH_ROM(current_frame->bank);
+    // gb_decompress(current_frame->tiles, buffer);
+    // gb_decompress_bkg_data(TILE_OFFSET, current_frame->tiles);
+    // SWITCH_ROM(_save); 
 }
 #endif
+
+void VBL_ISR(void) {
+    vbl_count++;
+}
 
 void main(void) {
     DISPLAY_OFF;
 
     CRITICAL {
-        LYC_REG = 0, STAT_REG |= STATF_LYC;
+        // LYC_REG = 0, STAT_REG |= STATF_LYC;
         #if HBLANK_DESTINATION == 0
             LCDC_REG |= LCDCF_BG8000;
             hblank_copy_destination = _VRAM8000+(TILE_OFFSET*TILE_OFFSET_SIZE);
@@ -72,9 +87,11 @@ void main(void) {
             LCDC_REG &= ~LCDCF_BG8000;
             hblank_copy_destination = _VRAM9000+(TILE_OFFSET*TILE_OFFSET_SIZE);
         #endif
-        add_LCD(LCD_ISR);
+        // add_LCD(LCD_ISR);
+        add_VBL(VBL_ISR);
     }
-    set_interrupts(IE_REG | LCD_IFLAG);
+    set_interrupts(VBL_IFLAG);
+    // set_interrupts(IE_REG | VBL_IFLAG | LCD_IFLAG);
 
     // set up palettes
     BGP_REG = DMG_PALETTE(DMG_DARK_GRAY, DMG_WHITE, DMG_LITE_GRAY, DMG_BLACK);
@@ -97,7 +114,14 @@ void main(void) {
     DISPLAY_ON;    
 
     while (true) {
-        vsync();
+        if(vbl_count == 0)
+            vsync();
+        vbl_count = 0;
+        uint8_t _save = CURRENT_BANK;
+        SWITCH_ROM(current_frame->bank);
+        // gb_decompress(current_frame->tiles, buffer);
+        gb_decompress_bkg_data(TILE_OFFSET, current_frame->tiles);
+        SWITCH_ROM(_save); 
         PROCESS_INPUT();
         // stepping through animation frames with LEFT/RIGHT
         if (joy & J_LEFT) {
