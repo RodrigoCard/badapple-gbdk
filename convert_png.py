@@ -72,6 +72,7 @@ for dup in duplicates:
 # reconstruct header_list e frame_list, changing dupes to point to originals
 new_header_list = []
 new_frame_list  = []
+included_headers = set()
 
 print("Generating header files...")
 
@@ -79,10 +80,11 @@ for name in output_files:
     # if dupe, point to original
     original = duplicates.get(name, name)
     # dont include the same header more than once
-    if original not in [ h.split()[1].strip('"') for h in new_header_list ]:
-        new_header_list.append(f'#include \"{original}.h\"')
+    if original not in included_headers:
+        new_header_list.append(f'#include "{original}.h"')
+        included_headers.add(original)
     new_frame_list.append(
-        f'    {{.tiles = {original}_tiles, .bank = BANK({original})}}'
+        f'    {{.tiles = {original}_tiles, .bank = BANK({original}_tiles)}}'
     )
 
 # data.h
