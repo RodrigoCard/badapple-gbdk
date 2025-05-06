@@ -13,7 +13,7 @@ LCC = $(GBDK_HOME)bin/lcc
 PNG2ASSET = $(GBDK_HOME)bin/png2asset
 GBCOMPRESS = $(GBDK_HOME)bin/gbcompress
 
-LCCFLAGS += -Wm-yt0x19 -Wm-yc -autobank -I$(OBJDIR)
+LCCFLAGS += -Wm-yt0x19 -Wm-yc -autobank -Wb-ext=.rel -I$(OBJDIR)
 
 # GBDK_DEBUG = ON
 ifdef GBDK_DEBUG
